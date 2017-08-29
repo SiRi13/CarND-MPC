@@ -35,19 +35,23 @@ class FG_eval {
     unsigned t = 0;
     for (t = 0; t < MPC::N; ++t) {
       // TODO: tune ref state
-      fg[0] += CppAD::pow(vars[mpc.cte_start + t], 2);
-      fg[0] += CppAD::pow(vars[mpc.epsi_start + t], 2);
-      fg[0] += CppAD::pow(vars[mpc.v_start + t] - MPC::REF_V, 2);
+      fg[0] +=
+          MPC::FAC_CTE * CppAD::pow(vars[mpc.cte_start + t] - MPC::REF_CTE, 2);
+      fg[0] += MPC::FAC_EPSI *
+               CppAD::pow(vars[mpc.epsi_start + t] - MPC::REF_EPSI, 2);
+      fg[0] += MPC::FAC_V * CppAD::pow(vars[mpc.v_start + t] - MPC::REF_V, 2);
 
       if (t < MPC::N - 1) {
-        fg[0] += CppAD::pow(vars[mpc.delta_start + t], 2);
-        fg[0] += CppAD::pow(vars[mpc.a_start + t], 2);
+        fg[0] += MPC::FAC_DELTA * CppAD::pow(vars[mpc.delta_start + t], 2);
+        fg[0] += MPC::FAC_A * CppAD::pow(vars[mpc.a_start + t], 2);
       }
 
       if (t < MPC::N - 2) {
-        fg[0] += CppAD::pow(
-            vars[mpc.delta_start + t + 1] - vars[mpc.delta_start + t], 2);
+        fg[0] += MPC::FAC_DELTA_2 * CppAD::pow(vars[mpc.delta_start + t + 1] -
+                                                   vars[mpc.delta_start + t],
+                                               2);
         fg[0] +=
+            MPC::FAC_A_2 *
             CppAD::pow(vars[mpc.a_start + t + 1] - vars[mpc.a_start + t], 2);
       }
     }
@@ -90,20 +94,11 @@ class FG_eval {
       AD<double> cte1 = vars[mpc.cte_start + t];
       AD<double> ePsi1 = vars[mpc.epsi_start + t];
 
-      AD<double> f0 = 0.0;
-      AD<double> psiDes0 = 0.0;
-      for (unsigned i = 0; i < coeffs.size(); ++i) {
-        f0 += coeffs[i] * CppAD::pow(x0, i);
-        if (i > 0) {
-          psiDes0 += i * coeffs[i] * CppAD::pow(x0, i - 1);
-        }
-      }
-      // Here's `x` to get you started.
-      // The idea here is to constraint this value to be 0.
-      //
-      // NOTE: The use of `AD<double>` and use of `CppAD`!
-      // This is also CppAD can compute derivatives and pass
-      // these to the solver.
+      AD<double> f0 = coeffs[0] + coeffs[1] * x0 +
+                      coeffs[2] * CppAD::pow(x0, 2) +
+                      coeffs[3] * CppAD::pow(x0, 3);
+      AD<double> psiDes0 = CppAD::atan(coeffs[1] + 2 * coeffs[2] * x0 +
+                                       3 * coeffs[3] * CppAD::pow(x0, 2));
 
       // Setup the rest of the model constraints
       fg[1 + mpc.x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * mpc.dt);

@@ -13,7 +13,7 @@ class MPC {
  public:
   // TODO: Set the timestep length and duration
   static constexpr unsigned N = 20;
-  static constexpr double dt = 0.05;
+  static constexpr double dt = 0.1;
 
   // This value assumes the model presented in the classroom is used.
   //
@@ -27,7 +27,17 @@ class MPC {
   // This is the length from front to CoG that has a similar radius.
   static constexpr double Lf = 2.67;
 
+  static constexpr double REF_CTE = 0;
+  static constexpr double REF_EPSI = 0;
   static constexpr double REF_V = 40;
+
+  static constexpr double FAC_CTE = 2;
+  static constexpr double FAC_EPSI = 20;
+  static constexpr double FAC_V = 1;
+  static constexpr double FAC_A = 20;
+  static constexpr double FAC_DELTA = 100000;
+  static constexpr double FAC_A_2 = 1;
+  static constexpr double FAC_DELTA_2 = 1;
 
   // The solver takes all the state variables and actuator
   // variables in a singular vector. Thus, we should to establish

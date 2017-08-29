@@ -93,11 +93,11 @@ int main() {
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
-          psi *= -1;
+          psi *= -1.0;
           double steering_angle = j[1]["steering_angle"];
           double throttle = j[1]["throttle"];
-          double v = j[1]["speed"];
-          v *= MPH_TO_MS;
+          double speed = j[1]["speed"];
+          double v = speed * MPH_TO_MS;
           unsigned n_waypoints = ptsx.size();
 
           Eigen::VectorXd ptsx_sim(n_waypoints), ptsy_sim(n_waypoints);
@@ -122,7 +122,7 @@ int main() {
           state << cur_px, cur_py, cur_psi, cur_v, cur_cte, cur_ePsi;
           vector<double> result = mpc.Solve(state, coeffs);
 
-          double steer_value = result[0] / deg2rad(25.0);
+          double steer_value = -1.0 * (result[0] / deg2rad(25.0));
           double throttle_value = result[1];
 
           json msgJson;
@@ -152,7 +152,7 @@ int main() {
           msgJson["next_y"] = next_y_vals;
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
+          // std::cout << msg << std::endl;
           // Latency
           // The purpose is to mimic real driving conditions where
           // the car does actuate the commands instantly.
