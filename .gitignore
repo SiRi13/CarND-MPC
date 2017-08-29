@@ -1,5 +1,3 @@
-.vscode
 build
-tags
-.editorconfig
-.DS_Store
+*.swp
+compile_commands.json
