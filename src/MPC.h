@@ -1,13 +1,13 @@
 #ifndef MPC_H
 #define MPC_H
 
-#include <Eigen/Core>
 #include <vector>
+#include "Eigen-3.3/Eigen/Core"
 
 using namespace std;
 
 class MPC {
-public:
+ public:
   MPC();
 
   virtual ~MPC();

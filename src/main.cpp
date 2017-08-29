@@ -1,13 +1,13 @@
-#include "MPC.h"
-#include "json.hpp"
-#include <Eigen/Core>
-#include <Eigen/QR>
+#include <math.h>
+#include <uWS/uWS.h>
 #include <chrono>
 #include <iostream>
-#include <math.h>
 #include <thread>
-#include <uWS/uWS.h>
 #include <vector>
+#include "Eigen-3.3/Eigen/Core"
+#include "Eigen-3.3/Eigen/QR"
+#include "MPC.h"
+#include "json.hpp"
 
 // for convenience
 using json = nlohmann::json;
