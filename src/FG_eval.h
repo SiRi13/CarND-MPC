@@ -35,10 +35,8 @@ class FG_eval {
     unsigned t = 0;
     for (t = 0; t < MPC::N; ++t) {
       // TODO: tune ref state
-      fg[0] +=
-          MPC::FAC_CTE * CppAD::pow(vars[mpc.cte_start + t] - MPC::REF_CTE, 2);
-      fg[0] += MPC::FAC_EPSI *
-               CppAD::pow(vars[mpc.epsi_start + t] - MPC::REF_EPSI, 2);
+      fg[0] += MPC::FAC_CTE * CppAD::pow(vars[mpc.cte_start + t], 2);
+      fg[0] += MPC::FAC_EPSI * CppAD::pow(vars[mpc.epsi_start + t], 2);
       fg[0] += MPC::FAC_V * CppAD::pow(vars[mpc.v_start + t] - MPC::REF_V, 2);
 
       if (t < MPC::N - 1) {

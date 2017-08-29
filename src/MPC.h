@@ -27,8 +27,6 @@ class MPC {
   // This is the length from front to CoG that has a similar radius.
   static constexpr double Lf = 2.67;
 
-  static constexpr double REF_CTE = 0;
-  static constexpr double REF_EPSI = 0;
   static constexpr double REF_V = 40;
 
   static constexpr double FAC_CTE = 2;
