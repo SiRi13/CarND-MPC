@@ -9,6 +9,8 @@
 #include "MPC.h"
 #include "json.hpp"
 
+#define MPH_TO_MS 0.44704;
+
 // for convenience
 using json = nlohmann::json;
 
@@ -73,6 +75,7 @@ int main() {
 
   h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
+    unsigned i = 0;
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -90,61 +93,61 @@ int main() {
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
+          psi *= -1;
+          double steering_angle = j[1]["steering_angle"];
+          double throttle = j[1]["throttle"];
           double v = j[1]["speed"];
+          v *= MPH_TO_MS;
+          unsigned n_waypoints = ptsx.size();
 
-          // double *ptr = &ptsx[0];
-          Eigen::Map<Eigen::VectorXd> ptsx_v(&ptsx[0], ptsx.size());
-          // ptr = &ptsy[0];
-          Eigen::Map<Eigen::VectorXd> ptsy_v(&ptsy[0], ptsy.size());
-          /*
-            Eigen::VectorXd ptsx_v(ptsx.data());
-            Eigen::VectorXd ptsy_v(ptsy.data());
-            */
+          Eigen::VectorXd ptsx_sim(n_waypoints), ptsy_sim(n_waypoints);
+          for (i = 0; i < n_waypoints; ++i) {
+            double delta_x = ptsx[i] - px, delta_y = ptsy[i] - py;
+            ptsx_sim[i] = delta_x * cos(psi) - delta_y * sin(psi);
+            ptsy_sim[i] = delta_y * cos(psi) + delta_x * sin(psi);
+          }
 
-          auto coeffs = polyfit(ptsx_v, ptsy_v, 3);
-          double cte = polyeval(coeffs, px) - py;
-          double epsi = psi - atan(coeffs[1]);
+          auto coeffs = polyfit(ptsx_sim, ptsy_sim, 3);
+          double cte = coeffs[0];
+          double ePsi = -atan(coeffs[1]);
 
-          /*
-          * TODO: Calculate steering angle and throttle using MPC.
-          *
-          * Both are in between [-1, 1].
-          *
-          */
+          double cur_px = v * MPC::dt;
+          double cur_py = 0;
+          double cur_psi = -v * steering_angle * MPC::dt / MPC::Lf;
+          double cur_v = v + throttle * MPC::dt;
+          double cur_cte = cte + v * sin(ePsi) * MPC::dt;
+          double cur_ePsi = ePsi + cur_psi;
+
           Eigen::VectorXd state(6);
-          state << px, py, psi, v, cte, epsi;
-
+          state << cur_px, cur_py, cur_psi, cur_v, cur_cte, cur_ePsi;
           vector<double> result = mpc.Solve(state, coeffs);
-          double steer_value = -1.0 * (result[6] / deg2rad(25.0));
-          double throttle_value = result[3];
+
+          double steer_value = result[0] / deg2rad(25.0);
+          double throttle_value = result[1];
 
           json msgJson;
-          // NOTE: Remember to divide by deg2rad(25) before you send the
-          // steering value back.
-          // Otherwise the values will be in between [-deg2rad(25), deg2rad(25]
-          // instead of [-1, 1].
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value;
 
           // Display the MPC predicted trajectory
-          vector<double> mpc_x_vals;
-          vector<double> mpc_y_vals;
-
           //.. add (x,y) points to list here, points are in reference to the
           // vehicle's coordinate system
           // the points in the simulator are connected by a Green line
-
+          vector<double> mpc_x_vals = mpc.mpc_x;
+          vector<double> mpc_y_vals = mpc.mpc_y;
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
 
           // Display the waypoints/reference line
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
-
           //.. add (x,y) points to list here, points are in reference to the
           // vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
-
+          vector<double> next_x_vals;
+          vector<double> next_y_vals;
+          for (i = 0; i < n_waypoints; ++i) {
+            next_x_vals.push_back(ptsx_sim[i]);
+            next_y_vals.push_back(ptsy_sim[i]);
+          }
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
 
