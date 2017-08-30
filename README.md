@@ -1,5 +1,50 @@
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
+---
+## Result
+
+![Final Run](img/hq_run.gif)
+
+With a basic kinematic Model and some tuning, I was able to get smooth rounds at about 55 Mph on the simulator.
+Without major tweaking or modifying the source code, my implementation reaches about 85 Mph before leaving the road.
+
+---
+## Reflection
+
+### Model
+
+As I mentioned before, I used a kinematic Model. The same we discussed in the lessons. With this kind, at least this set up, of simulator a more sophisticated Model wouldn't work, since there are no further parameters provided. For example how quickly the throttle responses or how much the tires slip.
+Thus I used only four state parameters:
+* Position (x/y)
+* Direction (ψ)
+* Velocity (v)
+
+To change direction and/or accelerate, two more actuator variables are necessary.
+* Steering angle (δ)
+* Acceleration (a)
+
+![State Parameters](img/state_parameters.png)
+
+Computing the next state based on the current state is accomplished by a set of four equations:
+
+![Update Equations](img/update_equations.png)
+
+*Lf* was provided by Udacity and is essentially the distance from the front to the center of mass of the car. The *dt* value is the predefined duration between time steps.
+
+### Time Step Length & Elapsed Duration
+
+To set the time step length *N* and the time step duration *dt*, I followed the advice from lesson 19.5. It says to determine the horizon *T* first and tune *N* and *dt* accordingly.
+So I figured, 2 seconds for a winding track seemed good. To match the time step duration with the latency I set *dt* to 100 ms or 0.1 s. This results in 20 steps for *N*.
+
+
+### Preprocessing Waypoints & Latency
+
+Before fitting a polynomial to the waypoints I adjusted them to the environment.
+Firstly I multiplied the direction *ψ* by -1 to accommodate for the reversed steering.
+Secondly I converted the speed from miles per hour to meters per second.
+Thirdly I translated the position of the vehicle to the simulator space.
+Lastly, to address the latency I calculated the state of the car with respect to the 100 ms delay before passing it to the _MPC::Solve_ function.
+This will improve the stability slightly and decreases the negative effects of the latency.
 
 ---
 
@@ -19,7 +64,7 @@ Self-Driving Car Engineer Nanodegree Program
   * Run either `install-mac.sh` or `install-ubuntu.sh`.
   * If you install from source, checkout to commit `e94b6e1`, i.e.
     ```
-    git clone https://github.com/uWebSockets/uWebSockets 
+    git clone https://github.com/uWebSockets/uWebSockets
     cd uWebSockets
     git checkout e94b6e1
     ```
@@ -42,7 +87,7 @@ Self-Driving Car Engineer Nanodegree Program
        per this [forum post](https://discussions.udacity.com/t/incorrect-checksum-for-freed-object/313433/19).
   * Linux
     * You will need a version of Ipopt 3.12.1 or higher. The version available through `apt-get` is 3.11.x. If you can get that version to work great but if not there's a script `install_ipopt.sh` that will install Ipopt. You just need to download the source from the Ipopt [releases page](https://www.coin-or.org/download/source/Ipopt/).
-    * Then call `install_ipopt.sh` with the source directory as the first argument, ex: `sudo bash install_ipopt.sh Ipopt-3.12.1`. 
+    * Then call `install_ipopt.sh` with the source directory as the first argument, ex: `sudo bash install_ipopt.sh Ipopt-3.12.1`.
   * Windows: TODO. If you can use the Linux subsystem and follow the Linux instructions.
 * [CppAD](https://www.coin-or.org/CppAD/)
   * Mac: `brew install cppad`
@@ -127,4 +172,3 @@ still be compilable with cmake and make./
 
 ## How to write a README
 A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
