@@ -27,15 +27,15 @@ class MPC {
   // This is the length from front to CoG that has a similar radius.
   static constexpr double Lf = 2.67;
 
-  static constexpr double REF_V = 40;
+  static constexpr double REF_V = 30;
 
   static constexpr double FAC_CTE = 2;
   static constexpr double FAC_EPSI = 20;
   static constexpr double FAC_V = 1;
   static constexpr double FAC_A = 20;
-  static constexpr double FAC_DELTA = 100000;
-  static constexpr double FAC_A_2 = 1;
-  static constexpr double FAC_DELTA_2 = 1;
+  static constexpr double FAC_DELTA = 1000;
+  static constexpr double FAC_A_2 = 10;
+  static constexpr double FAC_DELTA_2 = 500;
 
   // The solver takes all the state variables and actuator
   // variables in a singular vector. Thus, we should to establish
